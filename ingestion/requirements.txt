@@ -3,5 +3,5 @@ requests
 python-dotenv
 
 # Phase 2 (uncomment when you move to Postgres)
-# psycopg[binary]
+psycopg[binary]
 # SQLAlchemy

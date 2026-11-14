@@ -1,6 +1,9 @@
 # Secrets — never commit these
 .env
 
+# Neon
+.neon
+
 # Python
 __pycache__/
 *.pyc

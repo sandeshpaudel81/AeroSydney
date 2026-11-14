@@ -4,21 +4,51 @@
 name: Daily flight pipeline
 
 on:
-  # TODO: add a schedule. GitHub cron runs in UTC; work out which UTC hour is early morning in Sydney.
-  # schedule:
-  #   - cron: "M H * * *"
-  workflow_dispatch: {}   # lets you trigger a run manually from the Actions tab while testing
+  schedule:
+    # GitHub cron is always UTC and doesn't follow daylight saving.
+    # 20:17 UTC = 07:17 Sydney in summer (AEDT, UTC+11) / 06:17 in winter (AEST, UTC+10).
+    # Running a few hours after midnight lets late-night flights (WSI has no curfew) land and
+    # get actual times. Off-the-hour minute because GitHub delays jobs queued at :00.
+    # The script works out "yesterday" in Sydney time itself, so the exact run time doesn't matter.
+    - cron: "17 20 * * *"
+  workflow_dispatch:          # manual run from the Actions tab
+    inputs:
+      flight_date:
+        description: "Sydney-local date to (re)fetch, YYYY-MM-DD. Leave empty for yesterday."
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+# Never run two ingestions at once (e.g. a manual run overlapping the scheduled one).
+concurrency:
+  group: daily-pipeline
+  cancel-in-progress: false
 
 jobs:
   ingest:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      # TODO: check out the repo (look up actions/checkout)
-      # TODO: set up Python (look up actions/setup-python)
-      # TODO: install ingestion/requirements.txt
-      # TODO: run ingestion/fetch_flights.py, passing secrets as env vars:
-      #   env:
-      #     FLIGHT_API_KEY: ${{ secrets.FLIGHT_API_KEY }}
-      #     ...
-      - name: Placeholder
-        run: echo "Replace me with real steps"
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: ingestion/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r ingestion/requirements.txt
+
+      - name: Fetch flights and load to Postgres
+        env:
+          FLIGHT_API_KEY: ${{ secrets.FLIGHT_API_KEY }}
+          FLIGHT_API_HOST: ${{ secrets.FLIGHT_API_HOST }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          FLIGHT_DATE: ${{ inputs.flight_date }}   # empty on scheduled runs
+        # Pass the date as an env var, not inline ${{ }}, so the input can't inject shell commands.
+        run: python ingestion/fetch_flights.py $FLIGHT_DATE
