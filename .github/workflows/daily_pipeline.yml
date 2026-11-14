@@ -1,0 +1,24 @@
+# Phase 2: run the ingestion script every morning.
+# Phase 4: add a dbt build step after ingestion.
+
+name: Daily flight pipeline
+
+on:
+  # TODO: add a schedule. GitHub cron runs in UTC; work out which UTC hour is early morning in Sydney.
+  # schedule:
+  #   - cron: "M H * * *"
+  workflow_dispatch: {}   # lets you trigger a run manually from the Actions tab while testing
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      # TODO: check out the repo (look up actions/checkout)
+      # TODO: set up Python (look up actions/setup-python)
+      # TODO: install ingestion/requirements.txt
+      # TODO: run ingestion/fetch_flights.py, passing secrets as env vars:
+      #   env:
+      #     FLIGHT_API_KEY: ${{ secrets.FLIGHT_API_KEY }}
+      #     ...
+      - name: Placeholder
+        run: echo "Replace me with real steps"

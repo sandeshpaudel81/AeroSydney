@@ -1,0 +1,7 @@
+# Phase 1
+requests
+python-dotenv
+
+# Phase 2 (uncomment when you move to Postgres)
+# psycopg[binary]
+# SQLAlchemy

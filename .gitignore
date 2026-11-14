@@ -1,0 +1,25 @@
+# Secrets — never commit these
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Local data dumps (raw JSON from Phase 1 testing)
+data/
+
+# dbt
+dbt/**/target/
+dbt/**/dbt_packages/
+dbt/**/logs/
+
+# Power BI (keep .pbip files, ignore local cache/settings)
+powerbi/**/.pbi/localSettings.json
+powerbi/**/.pbi/cache.abf
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
