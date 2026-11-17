@@ -4,13 +4,6 @@
 name: Daily flight pipeline
 
 on:
-  schedule:
-    # GitHub cron is always UTC and doesn't follow daylight saving.
-    # 20:17 UTC = 07:17 Sydney in summer (AEDT, UTC+11) / 06:17 in winter (AEST, UTC+10).
-    # Running a few hours after midnight lets late-night flights (WSI has no curfew) land and
-    # get actual times. Off-the-hour minute because GitHub delays jobs queued at :00.
-    # The script works out "yesterday" in Sydney time itself, so the exact run time doesn't matter.
-    - cron: "17 20 * * *"
   workflow_dispatch:          # manual run from the Actions tab
     inputs:
       flight_date:
