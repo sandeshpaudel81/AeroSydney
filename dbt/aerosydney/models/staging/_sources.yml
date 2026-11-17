@@ -1,0 +1,48 @@
+sources:
+  - name: raw
+    schema: raw
+    description: >
+      Landing schema written by ingestion/fetch_flights.py. Raw API responses,
+      untouched; all cleaning happens in dbt staging models.
+    tables:
+      - name: flight_snapshots
+        description: >
+          AeroDataBox airport board (FIDS) responses. One row per
+          airport + direction + Sydney-local flight_date; re-fetching a date
+          upserts (overwrites) its row. `payload` is a JSON array of flights.
+        config:
+          # Freshness = age of the most recent load, NOT whether yesterday's
+          # flights exist (a backfill of an old date also resets fetched_at).
+          loaded_at_field: fetched_at
+          freshness:
+            warn_after: {count: 26, period: hour}   # daily run + slack for a late/retried run
+            error_after: {count: 48, period: hour}  # a whole day missed
+        columns:
+          - name: snapshot_id
+            description: Surrogate key (identity). Uniqueness is enforced by the table's primary key.
+          - name: airport_iata
+            description: Board airport the snapshot was fetched for.
+            data_tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: ['WSI', 'SYD']
+          - name: direction
+            description: Which board was fetched.
+            data_tests:
+              - not_null
+              - accepted_values:
+                  arguments:
+                    values: ['arrivals', 'departures']
+          - name: flight_date
+            description: Local date in Australia/Sydney the board covers.
+            data_tests:
+              - not_null
+          - name: fetched_at
+            description: When the snapshot was (last) loaded, UTC.
+          - name: payload
+            description: JSON array of flight objects, merged from two 12-hour API windows.
+            data_tests:
+              - not_null
+          - name: flight_count
+            description: Number of elements in payload at load time.
