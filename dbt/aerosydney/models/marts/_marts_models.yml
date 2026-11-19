@@ -1,0 +1,65 @@
+models:
+  - name: fct_flights
+    description: >
+      One row per physical aircraft movement on a board (WSI/SYD x arrivals/departures).
+      See the model header for delay definitions and the departure revised-time caveat.
+    columns:
+      - name: flight_key
+        data_tests:
+          - unique
+          - not_null
+      - name: date_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_date')
+                field: date_key
+      - name: other_airport_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_airport')
+                field: airport_key
+      - name: airline_key
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_airline')
+                field: airline_key
+      - name: board_airport_iata
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['WSI', 'SYD']
+      - name: direction
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['arrivals', 'departures']
+      - name: board_scheduled_at
+        data_tests:
+          - not_null
+
+  - name: dim_airport
+    columns:
+      - name: airport_key
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_airline
+    columns:
+      - name: airline_key
+        data_tests:
+          - unique
+          - not_null
+
+  - name: dim_date
+    columns:
+      - name: date_key
+        data_tests:
+          - unique
+          - not_null

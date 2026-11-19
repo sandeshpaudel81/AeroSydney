@@ -1,5 +1,6 @@
-# Phase 2: run the ingestion script every morning.
-# Phase 4: add a dbt build step after ingestion.
+# Daily pipeline: ingest raw flight snapshots, then rebuild the dbt models on top.
+#   ingest    -> raw.flight_snapshots (Python, AeroDataBox API)
+#   transform -> analytics.* views + mart tables (dbt build: models + tests)
 
 name: Daily flight pipeline
 
@@ -45,3 +46,42 @@ jobs:
           FLIGHT_DATE: ${{ inputs.flight_date }}   # empty on scheduled runs
         # Pass the date as an env var, not inline ${{ }}, so the input can't inject shell commands.
         run: python ingestion/fetch_flights.py $FLIGHT_DATE
+
+  transform:
+    # Only runs if ingestion succeeded, so dbt never builds on a half-finished load.
+    needs: ingest
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: dbt/aerosydney
+    env:
+      # Read by dbt/aerosydney/profiles.yml. PG_PORT is left unset so the profile's
+      # 5432 default applies (an empty secret would break `as_number`).
+      PG_HOST: ${{ secrets.PG_HOST }}
+      PG_USER: ${{ secrets.PG_USER }}
+      PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+      PG_DATABASE: ${{ secrets.PG_DATABASE }}
+      DBT_PROFILES_DIR: .
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"    # dbt 1.12 doesn't support 3.14 yet
+          cache: pip
+          cache-dependency-path: dbt/requirements.txt
+
+      - name: Install dbt
+        run: pip install -r ../requirements.txt
+
+      - name: Check source freshness
+        # Fails the run if raw data is older than error_after (48h) in _sources.yml.
+        run: dbt source freshness
+
+      - name: Build models and run tests
+        # Rebuilds staging/intermediate views and mart tables, running tests as it goes.
+        # A failing test stops downstream models, so Power BI keeps yesterday's tables.
+        run: dbt build
