@@ -1,0 +1,36 @@
+models:
+  - name: int_flights_deduped
+    description: >
+      One row per physical aircraft movement on a board (WSI/SYD x arrivals/departures).
+      Built from operator (and Unknown) listings only; codeshare listings are
+      dropped (sparse stubs that can't be keyed). Duplicate API listings are
+      collapsed onto one row. A SYD-WSI flight still appears twice
+      (SYD departure + WSI arrival): those are two board events, not duplicates.
+    columns:
+      - name: flight_key
+        description: >
+          md5 of board_airport_iata, direction, other_airport_iata,
+          board_scheduled_at (UTC) and flight_identity. Primary key.
+        data_tests:
+          - unique
+          - not_null
+      - name: flight_identity
+        description: >
+          coalesce(call_sign, aircraft_reg, flight_number). Splits different
+          flights that share route + scheduled time (e.g. JQ 501 / VA 800 SYD-MEL 06:00).
+        data_tests:
+          - not_null
+      - name: flight_number
+        description: Operator's flight number.
+        data_tests:
+          - not_null
+      - name: codeshare_status
+        description: IsOperator, or Unknown when the API didn't say.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ['IsOperator', 'Unknown']
+      - name: board_scheduled_at
+        description: Scheduled time at the board airport, UTC.
+        data_tests:
+          - not_null
