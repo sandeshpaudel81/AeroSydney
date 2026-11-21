@@ -4,6 +4,9 @@
 # Neon
 .neon
 
+# Power BI
+powerbi/POWERBI_PLAN.md
+
 # Python
 __pycache__/
 *.pyc

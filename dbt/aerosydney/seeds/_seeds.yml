@@ -1,0 +1,9 @@
+seeds:
+  - name: board_airports
+    description: >
+      One row per board airport (WSI/SYD) with additional details
+    columns:
+      - name: board_airport_key
+        data_tests:
+          - unique
+          - not_null

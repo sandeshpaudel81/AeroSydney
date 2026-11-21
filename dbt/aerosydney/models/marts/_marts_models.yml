@@ -31,9 +31,11 @@ models:
                 field: airline_key
       - name: board_airport_iata
         data_tests:
-          - accepted_values:
+          - not_null
+          - relationships:
               arguments:
-                values: ['WSI', 'SYD']
+                to: ref('board_airports')
+                field: board_airport_key
       - name: direction
         data_tests:
           - accepted_values:

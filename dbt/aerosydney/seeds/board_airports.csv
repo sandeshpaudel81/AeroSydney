@@ -1,0 +1,3 @@
+board_airport_key,airport_name,suburb,opened_date,has_curfew,latitude,longitude
+WSI,Western Sydney Airport,Luddenham,2026-10-25,false,-33.888056,150.714722
+SYD,Sydney Airport,Mascot,1920-01-09,true,-33.946111,151.177222

@@ -40,6 +40,7 @@
 ## Limitations and next steps
 
 <!-- TODO: data history start date, API coverage, codeshare handling, what you'd add next -->
+Passenger flights only. Cargo flights are excluded at ingestion (withCargo=false in the AeroDataBox request), so movement counts and night-time (curfew-window) activity exclude freighters. This understates WSI's overnight activity, since it operates 24/7 as a freight hub.
 
 ## Learning log
 
